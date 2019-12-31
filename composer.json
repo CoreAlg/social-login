@@ -3,7 +3,7 @@
     "description": "Social Authentication Provider",
     "type": "library",
     "license": "MIT",
-    "keywords": ["auth", "social-login"],
+    "keywords": ["auth", "social-login", "azure"],
     "require": {
         "php": "^7.2",
         "league/oauth2-client": "^2.4",
