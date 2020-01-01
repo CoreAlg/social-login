@@ -15,13 +15,6 @@ class Client
 
     protected $provider;
 
-    /**
-     * Sample configuration
-     * [
-     *      'driver' => 'YOUR-DRIVER'
-     * ]
-     */
-
     public function __construct(array $configuration)
     {
         $this->configuration = $configuration;
