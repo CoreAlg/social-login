@@ -4,6 +4,7 @@ namespace CoreAlg\SocialLogin\Providers;
 
 use Exception;
 use League\OAuth2\Client\Provider\GenericProvider;
+use stdClass;
 
 const OAUTH_AUTHORITY = "https://login.microsoftonline.com/common";
 const OAUTH_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
@@ -34,9 +35,9 @@ class AzureProvider
         ]);
     }
 
-    public function getAuthorizationUrl() :string
+    public function getAuthorizationUrl(array $options = []) :string
     {
-        $authorizationUrl = $this->provider->getAuthorizationUrl();
+        $authorizationUrl = $this->provider->getAuthorizationUrl($options);
 
         // Get the state generated for you and store it to the session.
         $_SESSION['oauth2state'] = $this->provider->getState();
@@ -47,7 +48,7 @@ class AzureProvider
     public function checkState() :bool
     {
         $flag = true;
-// dd(var_dump($_GET['state'] !== $_SESSION['oauth2state']), var_dump($_GET['state']), var_dump($_SESSION['oauth2state']));
+
         if (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
             $flag = false;
         }
@@ -97,11 +98,16 @@ class AzureProvider
 
     public function getUser()
     {
-        $userArray = [
-            "id" => null,
-            "name" => null,
-            "email" => null,
-        ];
+        $userObject = new stdClass();
+        $userObject->id = null;
+        $userObject->first_name = null;
+        $userObject->last_name = null;
+        $userObject->full_name = null;
+        $userObject->username = null;
+        $userObject->email = null;
+        $userObject->gender = null;
+        $userObject->age = null;
+        $userObject->access_token = null;
 
         $token = $this->getTokens();
 
@@ -109,8 +115,10 @@ class AzureProvider
 
         if (is_null($accessToken) === true) {
             // Failed to get access token.
-            return $userArray;
+            return $userObject;
         }
+
+        $userObject->access_token = json_encode($token);
 
         try{
             $graph = new \Microsoft\Graph\Graph();
@@ -120,15 +128,19 @@ class AzureProvider
                 ->setReturnType(\Microsoft\Graph\Model\User::class)
                 ->execute();
 
+            list($first_name, $last_name) = explode(" ", $user->getDisplayName());
+            
+            $userObject->id = $user->getId();
 
-            $userArray["id"] = $user->getId();
-            $userArray["name"] = $user->getDisplayName();
-            $userArray["email"] = $user->getUserPrincipalName();
+            $userObject->full_name = "{$first_name} {$last_name}";
+            $userObject->first_name = $first_name;
+            $userObject->last_name = $last_name;
+            $userObject->email = $user->getUserPrincipalName();
 
         }catch(Exception $ex){
             // Error
         }
 
-        return $userArray;
+        return (array)$userObject;
     }
 }

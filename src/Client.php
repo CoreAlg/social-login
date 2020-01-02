@@ -41,9 +41,9 @@ class Client
         }
     }
 
-    public function redirect() :void
+    public function redirect(array $options = []) :void
     {
-        $authorizationUrl = $this->provider->getAuthorizationUrl();
+        $authorizationUrl = $this->provider->getAuthorizationUrl($options);
 
         // Redirect to authorization endpoint
         header("Location: {$authorizationUrl}");
@@ -53,6 +53,11 @@ class Client
     public function user()
     {
         return $this->provider->getUser();
+    }
+
+    public function getAccessToken()
+    {
+        return $this->provider->getTokens();
     }
     
 }
